@@ -1,12 +1,16 @@
 /*
 A very trivial serial input parallel output unit having
-four states:
+three states:
     1. IDLE
-    2. READY
-    3. SHIFTING
-    4. STOP
+    2. SHIFTING
+    3. STOP
 
-Data will arrive in little-endian manner i.e. LSB first
+Data will arrive LSB first
+
+Scope of improvements:
+        1. ctr is being compared (expensive), instead a synchronous 
+           trigger signal could be used
+        2. op[ctr] is very trivial, use shift logic instead of write logic 
 */
 
 module sipo(
