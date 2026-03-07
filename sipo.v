@@ -8,36 +8,29 @@ Data will arrive LSB first
 */
 
 module sipo(
-    output reg [7:0] op,
-    input rst,
+    output [7:0] op,
     input clk,
     input x 
 );
-    reg [1:0] state=2'b00;
+    reg [7:0] op_r=8'b0;
+    reg state=1'b0;
     reg [2:0] ctr=3'b000;
-    parameter IDLE=2'b00, SHIFT=2'b10, STOP=2'b11;
+    parameter IDLE=1'b0, DATA=1'b1;
 
     always @(posedge clk) begin
-        if(rst) begin 
-            op<=8'b0;
-            ctr<=3'b0;
-        end
         case(state)
             IDLE: begin
-                if(!x) state<=SHIFT;
+                if(!x) state<=DATA;
             end
 
-            SHIFT: begin
-                // op[ctr]<=x; // Decoder+MUX
-                op<={x, op[7:1]}; // Flip-Flops
+            DATA: begin
+                op_r<={x, op_r[7:1]};
                 ctr<=ctr+1;
-                if(&ctr) state<=STOP;
-            end
-            STOP: begin
-                state<=IDLE;
-                ctr<=3'b000;
+                if(ctr==3'b111) state<=IDLE;
             end
         endcase
     end
+
+    assign op=op_r;
 
 endmodule
