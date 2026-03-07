@@ -3,14 +3,8 @@ A very trivial serial input parallel output unit having
 three states:
     1. IDLE
     2. SHIFTING
-    3. STOP
 
 Data will arrive LSB first
-
-Scope of improvements:
-        1. ctr is being compared (expensive), instead a synchronous 
-           trigger signal could be used
-        2. op[ctr] is very trivial, use shift logic instead of write logic 
 */
 
 module sipo(
@@ -24,30 +18,26 @@ module sipo(
     parameter IDLE=2'b00, SHIFT=2'b10, STOP=2'b11;
 
     always @(posedge clk) begin
-        if(rst) op<=8'h00;
+        if(rst) begin 
+            op<=8'b0;
+            ctr<=3'b0;
+        end
         case(state)
             IDLE: begin
                 if(!x) state<=SHIFT;
             end
 
             SHIFT: begin
-                op[ctr]<=x;
-                if(ctr==3'b111) state<=STOP;
+                // op[ctr]<=x; // Decoder+MUX
+                op<={x, op[7:1]}; // Flip-Flops
+                ctr<=ctr+1;
+                if(&ctr) state<=STOP;
             end
             STOP: begin
                 state<=IDLE;
                 ctr<=3'b000;
             end
         endcase
-    end
-
-    always @(posedge clk) begin
-        if(rst)
-            ctr <= 0;
-        else if(state == SHIFT)
-            ctr <= ctr + 1;
-        else
-            ctr <= 0;
     end
 
 endmodule
